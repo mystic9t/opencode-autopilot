@@ -109,6 +109,16 @@ The agent writes to `HEARTBEAT/` — never committed to git, always local. It tr
 
 ---
 
+## Roadmap
+
+### Coming in v0.1.0
+
+- **Kilocode support** — Auto-detect and use Kilocode as an alternative to OpenCode
+- **Smart tool switching** — Automatically fallback to the other tool when one hits rate limits
+- **Rate limit resume** — Pause overnight runs when both tools are rate-limited, auto-resume when limits reset
+
+---
+
 ## License
 
 MIT © [mystic9t](https://github.com/mystic9t/opencode-autopilot)

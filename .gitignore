@@ -2,6 +2,7 @@
 .autopilot.json
 HEARTBEAT/
 dump.txt
+AGENTS.md
 
 # Python generic
 __pycache__/
