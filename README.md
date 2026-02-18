@@ -16,6 +16,16 @@ The first night I ran it on Vibes, I woke up to **two fully functional new featu
 
 ---
 
+## Roadmap
+
+### Coming in v0.1.0
+
+- **Kilocode support** — Auto-detect and use Kilocode as an alternative to OpenCode
+- **Smart tool switching** — Automatically fallback to the other tool when one hits rate limits
+- **Rate limit resume** — Pause overnight runs when both tools are rate-limited, auto-resume when limits reset
+
+---
+
 ## Commands
 
 | Command | What it does |
@@ -106,16 +116,6 @@ The agent writes to `HEARTBEAT/` — never committed to git, always local. It tr
 - **Settled Decisions** — things tried and abandoned so it never repeats them
 - Paid feature ideas logged separately for you to review
 - Plans written during exploration sessions
-
----
-
-## Roadmap
-
-### Coming in v0.1.0
-
-- **Kilocode support** — Auto-detect and use Kilocode as an alternative to OpenCode
-- **Smart tool switching** — Automatically fallback to the other tool when one hits rate limits
-- **Rate limit resume** — Pause overnight runs when both tools are rate-limited, auto-resume when limits reset
 
 ---
 
