@@ -1,4 +1,9 @@
-# Byte-compiled / optimized / DLL files
+# opencode-autopilot
+.autopilot.json
+HEARTBEAT/
+dump.txt
+
+# Python generic
 __pycache__/
 *.py[codz]
 *$py.class

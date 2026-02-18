@@ -1,0 +1,24 @@
+# Blueprint Prompt (Build mode)
+
+BOOTSTRAP CONTEXT: Run {{ run }} of {{ total }}. Date: {{ date }} IST.
+
+Your ONLY job this session is to produce BLUEPRINT.md in the project root.
+Do NOT write any application code. Do NOT scaffold folders yet.
+
+Determine what kind of project this is:
+- If README.md exists -> read it as your primary source of intent.
+- If no README but source code exists -> read the directory structure and key source files to infer product, stack, and intent.
+- If neither exists -> write an opinionated BLUEPRINT.md for a generic modern web app and document your assumptions.
+
+BLUEPRINT.md must contain:
+- Project summary
+- Tech stack with reasoning
+- Top-level folder structure
+- Core data models and key types
+- Top 5 features to build first, in priority order
+- Definition of a successful overnight cycle
+- Free external APIs or libraries you plan to use
+- A "Must NOT build in this cycle" list
+
+This is the architectural constitution for all future sessions.
+Commit BLUEPRINT.md as the only commit this session.
