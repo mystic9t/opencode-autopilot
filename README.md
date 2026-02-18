@@ -19,7 +19,7 @@ The first night I ran it on Vibes, I woke up to **two fully functional new featu
 ## Commands
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `opencode-autopilot` | Smart detect — auto-detects project state and runs appropriate command |
 | `opencode-autopilot gg [topic]` | Full trust mode — agent researches, decides what to build, and builds it |
 | `opencode-autopilot build` | Build from README — agent builds based on your README |
