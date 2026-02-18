@@ -274,8 +274,8 @@ def build(
     return 0 if run_build(project_dir, options, log_callback=log) else 1
 
 
-@app.command()
-def run_cmd(
+@app.command(name="run")
+def run_improve(
     project: Optional[str] = typer.Option(None, "--project", help="Project directory"),
     sessions: Optional[int] = typer.Option(None, "-s", "--sessions", help="Number of improvement sessions"),
     interval: Optional[int] = typer.Option(None, "-i", "--interval", help="Minutes between sessions"),

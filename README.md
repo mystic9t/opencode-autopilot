@@ -109,22 +109,6 @@ The agent writes to `HEARTBEAT/` — never committed to git, always local. It tr
 
 ---
 
-## Prompt versioning
-
-Prompts are stored as versioned markdown files in `src/opencode_autopilot/prompts/`. This enables:
-
-- **A/B testing**: Point `config.yaml` to different versions to test prompt variations
-- **Regression testing**: Keep old versions for comparison
-- **Easy iteration**: Edit markdown files directly without touching Python code
-
-```yaml
-# config.yaml
-version: "1"
-active_version: "v1"
-```
-
----
-
 ## License
 
 MIT © [mystic9t](https://github.com/mystic9t/opencode-autopilot)
