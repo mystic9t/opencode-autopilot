@@ -1,6 +1,6 @@
 [project]
 name = "opencode-autopilot"
-version = "0.0.1"
+version = "0.1.0b1"
 description = "Autonomous overnight engineer for OpenCode projects. Bootstrap, build, and improve while you sleep."
 readme = "README.md"
 license = { text = "MIT" }
