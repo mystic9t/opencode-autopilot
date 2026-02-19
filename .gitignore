@@ -3,6 +3,9 @@
 HEARTBEAT/
 dump.txt
 AGENTS.md
+.opencode/
+*.ps1
+telemetry-id
 
 # Python generic
 __pycache__/
