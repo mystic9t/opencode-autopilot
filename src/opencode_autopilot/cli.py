@@ -390,7 +390,7 @@ def main(
     ctx: typer.Context,
     project: Optional[str] = typer.Option(None, "--project", help="Project directory"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompts"),
-    version: bool = typer.Option(False, "--version", callback=version_callback, is_eager=True, help="Show version"),
+    version: bool = typer.Option(False, "-v", "--version", callback=version_callback, is_eager=True, help="Show version"),
 ) -> int:
     """Auto-detect project state and run the appropriate command."""
     if ctx.invoked_subcommand is not None:
