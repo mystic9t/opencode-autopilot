@@ -18,11 +18,17 @@ The first night I ran it on Vibes, I woke up to **two fully functional new featu
 
 ## Roadmap
 
-### Coming in v0.1.0
+### v0.1.0 (Current Beta)
 
-- **Kilocode support** — Auto-detect and use Kilocode as an alternative to OpenCode
-- **Smart tool switching** — Automatically fallback to the other tool when one hits rate limits
-- **Rate limit resume** — Pause overnight runs when both tools are rate-limited, auto-resume when limits reset
+- ✅ **Kilocode support** — Auto-detect and use Kilocode as an alternative to OpenCode
+- ✅ **Smart tool switching** — Automatically fallback to the other tool when one hits rate limits
+- ✅ **Rate limit resume** — Pause overnight runs when both tools are rate-limited, auto-resume when limits reset
+
+### Coming Soon
+
+- Interactive mode for step-by-step approval
+- Session resume with `--resume` flag improvements
+- Plugin system for custom agents
 
 ---
 
@@ -30,17 +36,16 @@ The first night I ran it on Vibes, I woke up to **two fully functional new featu
 
 | Command | What it does |
 | --- | --- |
-| `opencode-autopilot` | Smart detect — auto-detects project state and runs appropriate command |
-| `opencode-autopilot gg [topic]` | Full trust mode — agent researches, decides what to build, and builds it |
-| `opencode-autopilot build` | Build from README — agent builds based on your README |
-| `opencode-autopilot run` | Improvement loop — agent improves existing project |
+| `opencode-autopilot` | Show help and available commands |
+| `opencode-autopilot run` | Run autonomous improvement sessions on existing projects |
+| `opencode-autopilot run --gg [topic]` | Full trust mode — agent researches, decides what to build, and builds it |
 | `opencode-autopilot config` | Set persistent defaults for model/agent |
 
 ---
 
 ## Requirements
 
-- [OpenCode](https://opencode.ai) installed and in PATH
+- [OpenCode](https://opencode.ai) or [Kilocode](https://kilocode.ai) installed and in PATH
 - Python 3.12+
 
 ---
@@ -84,26 +89,24 @@ opencode-autopilot config --show
 ## Usage
 
 ```bash
-# New project — you write the brief, agent builds
-opencode-autopilot build
-
 # Existing project — agent improves what's there
 opencode-autopilot run
 
 # Full trust — agent researches, decides, and builds with no input from you
-opencode-autopilot gg
+opencode-autopilot run --gg
 
 # Full trust with a loose nudge
-opencode-autopilot gg "something for people who read too much"
+opencode-autopilot run --gg "something for people who read too much"
 
 # Resume an interrupted cycle from session 6
-opencode-autopilot build --resume 6
+opencode-autopilot run --resume 6
 
 # Fewer sessions, shorter intervals
-opencode-autopilot build --sessions 6 --interval 15
+opencode-autopilot run --sessions 6 --interval 15
 
-# Smart auto-detect (no command)
-opencode-autopilot
+# Show help
+opencode-autopilot --help
+opencode-autopilot run --help
 ```
 
 ---
