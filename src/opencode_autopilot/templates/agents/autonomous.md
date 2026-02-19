@@ -1,7 +1,12 @@
 ---
-description: Autonomous agent for opencode-autopilot
-agent: build
-model: opencode/big-pickle
+description: Fully autonomous overnight improvement agent
+mode: primary
+temperature: 0.5
+permission:
+  edit: allow
+  bash: allow
+  webfetch: allow
+  read: allow
 ---
 
 # Autonomous Agent
