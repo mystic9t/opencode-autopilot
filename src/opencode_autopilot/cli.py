@@ -8,10 +8,8 @@ from rich.console import Console
 
 from . import __version__, config, detector
 from .opencode import check_tool_availability
-from .runner import GgOptions, RunOptions, run_gg, run_build, run_run
+from .runner import RunOptions, run, run_gg_mode
 
-# Configure Rich console for Windows compatibility
-# Use stderr for output and handle encoding issues
 console = Console(stderr=True, force_terminal=True, no_color=False)
 
 
@@ -20,7 +18,6 @@ def log(msg: str) -> None:
     try:
         console.print(msg)
     except Exception:
-        # Fallback to plain print if Rich fails
         import re
         plain = re.sub(r'\[/?[a-z]+\]', '', str(msg))
         print(plain)
@@ -64,7 +61,6 @@ def ask_yes(prompt: str, default: bool = True) -> bool:
                 return False
             console.print("[yellow]Please enter y or n[/yellow]")
         except Exception:
-            # Fallback to simple input
             response = input(prompt + suffix).strip().lower()
             if not response:
                 return default
@@ -99,7 +95,6 @@ def handle_auto_detect(project_dir: Path, yes: bool = False) -> int:
     """Handle the auto-detect mode when no command is given."""
     state = detector.detect_project_state(project_dir)
     
-    # Load config for defaults
     cfg = config.load_config(project_dir)
     default_sessions = cfg.sessions or 10
     default_interval = cfg.interval or 30
@@ -107,17 +102,17 @@ def handle_auto_detect(project_dir: Path, yes: bool = False) -> int:
     if state.state == detector.ProjectState.EMPTY:
         console.print("[cyan]Empty directory detected. Planning to auto-build from scratch.[/cyan]")
         if not yes:
-            confirm = ask_yes("Continue with gg (full trust mode)?", default=True)
+            confirm = ask_yes("Continue with --gg (full trust mode)?", default=True)
             if not confirm:
                 console.print("[yellow]Cancelled. Run 'opencode-autopilot init' to scaffold.[/yellow]")
                 return 0
-        options = GgOptions(
+        options = RunOptions(
             sessions=default_sessions,
             interval=default_interval,
             model=cfg.model or "opencode/big-pickle",
             agent="autonomous",
         )
-        return run_gg(project_dir, None, options, log_callback=log)
+        return run_gg_mode(project_dir, None, options, log_callback=log)
     
     elif state.state == detector.ProjectState.HAS_CODE_NO_BLUEPRINT:
         console.print("[cyan]Detected existing project with no blueprint.[/cyan]")
@@ -125,7 +120,7 @@ def handle_auto_detect(project_dir: Path, yes: bool = False) -> int:
         if state.has_text_only:
             console.print("[cyan]Found text files. Planning to scaffold and build.[/cyan]")
             if not yes:
-                confirm = ask_yes("Continue with build (read text files as brief)?", default=True)
+                confirm = ask_yes("Continue with run (read text files as brief)?", default=True)
                 if not confirm:
                     console.print("[yellow]Cancelled.[/yellow]")
                     return 0
@@ -135,7 +130,7 @@ def handle_auto_detect(project_dir: Path, yes: bool = False) -> int:
                 model=cfg.model or "opencode/big-pickle",
                 agent="autonomous",
             )
-            return run_build(project_dir, options, log_callback=log)
+            return run(project_dir, options, log_callback=log)
         
         console.print("[cyan]Found existing project with source code but no blueprint.[/cyan]")
         
@@ -151,20 +146,20 @@ def handle_auto_detect(project_dir: Path, yes: bool = False) -> int:
                 model=cfg.model or "opencode/big-pickle",
                 agent="autonomous",
             )
-            return run_run(project_dir, options, log_callback=log)
+            return run(project_dir, options, log_callback=log)
         else:
-            options = GgOptions(
+            options = RunOptions(
                 sessions=default_sessions,
                 interval=default_interval,
                 model=cfg.model or "opencode/big-pickle",
                 agent="autonomous",
             )
-            return run_gg(project_dir, None, options, log_callback=log)
+            return run_gg_mode(project_dir, None, options, log_callback=log)
     
     elif state.state == detector.ProjectState.BLUEPRINT_ONLY:
         console.print("[cyan]Found BLUEPRINT.md but no HEARTBEAT/. Planning to build.[/cyan]")
         if not yes:
-            confirm = ask_yes("Continue with build?", default=True)
+            confirm = ask_yes("Continue with run?", default=True)
             if not confirm:
                 console.print("[yellow]Cancelled.[/yellow]")
                 return 0
@@ -174,7 +169,7 @@ def handle_auto_detect(project_dir: Path, yes: bool = False) -> int:
             model=cfg.model or "opencode/big-pickle",
             agent="autonomous",
         )
-        return run_build(project_dir, options, log_callback=log)
+        return run(project_dir, options, log_callback=log)
     
     elif state.state == detector.ProjectState.ACTIVE:
         console.print("[cyan]Detected an active autopilot project. Planning to run improvement loop.[/cyan]")
@@ -189,75 +184,65 @@ def handle_auto_detect(project_dir: Path, yes: bool = False) -> int:
             model=cfg.model or "opencode/big-pickle",
             agent="autonomous",
         )
-        return run_run(project_dir, options, log_callback=log)
+        return run(project_dir, options, log_callback=log)
     
     elif state.state == detector.ProjectState.COMPLETED:
         console.print("[green]Found completed project with DEPLOY_GUIDE.md.[/green]")
-        console.print("You can start a new cycle with 'opencode-autopilot gg' or 'opencode-autopilot build'.")
+        console.print("You can start a new cycle with 'opencode-autopilot run --gg' or 'opencode-autopilot run'.")
         return 0
     
     return 0
 
 
-@app.command()
-def gg(
-    topic: Optional[str] = typer.Argument(None, help="Optional topic/nudge for the agent"),
-    project: Optional[str] = typer.Option(None, "--project", help="Project directory"),
-    sessions: Optional[int] = typer.Option(None, "-s", "--sessions", help="Number of build sessions"),
-    interval: Optional[int] = typer.Option(None, "-i", "--interval", help="Minutes between sessions"),
-    model: Optional[str] = typer.Option(None, "-m", "--model", help="OpenCode model"),
-    yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompts"),
-) -> int:
-    """Full trust mode - agent researches, decides what to build, and builds it."""
-    if not check_prerequisites():
-        return 1
-    
-    project_dir = get_project_dir(project)
-    
-    # Load config for defaults
-    cfg = config.load_config(project_dir)
-    
-    state = detector.detect_project_state(project_dir)
-    if state.state in (detector.ProjectState.ACTIVE, detector.ProjectState.COMPLETED):
-        console.print("[yellow]Warning: Active/completed project found.[/yellow]")
-        if not yes:
-            confirm = ask_yes("This will start fresh and ignore existing work. Continue?", default=False)
-            if not confirm:
-                console.print("[yellow]Cancelled.[/yellow]")
-                return 0
-    
-    options = GgOptions(
-        sessions=sessions if sessions is not None else (cfg.sessions or 10),
-        interval=interval if interval is not None else (cfg.interval or 30),
-        model=model or cfg.model or "opencode/big-pickle",
-        agent="autonomous",
-    )
-    
-    return 0 if run_gg(project_dir, topic, options, log_callback=log) else 1
+
+def version_callback(value: bool) -> None:
+    if value:
+        console.print(f"opencode-autopilot {__version__}")
+        raise typer.Exit()
 
 
-@app.command()
-def build(
+@app.command(name="run")
+def run_cmd(
+    topic: Optional[str] = typer.Argument(None, help="Optional topic/nudge for gg mode"),
     project: Optional[str] = typer.Option(None, "--project", help="Project directory"),
-    sessions: Optional[int] = typer.Option(None, "-s", "--sessions", help="Number of build sessions"),
+    sessions: Optional[int] = typer.Option(None, "-s", "--sessions", help="Number of sessions"),
     interval: Optional[int] = typer.Option(None, "-i", "--interval", help="Minutes between sessions"),
     resume: int = typer.Option(1, "-r", "--resume", help="Resume from this run number"),
     model: Optional[str] = typer.Option(None, "-m", "--model", help="OpenCode model"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompts"),
+    gg: bool = typer.Option(False, "--gg", help="Full trust mode - agent researches and builds from scratch"),
 ) -> int:
-    """Bootstrap a new project: blueprint -> build sessions -> security review."""
+    """Run autonomous sessions. Use --gg for full trust mode (builds from scratch)."""
     if not check_prerequisites():
         return 1
     
     project_dir = get_project_dir(project)
     
-    # Load config for defaults
     cfg = config.load_config(project_dir)
+    
+    if gg:
+        state = detector.detect_project_state(project_dir)
+        if state.state in (detector.ProjectState.ACTIVE, detector.ProjectState.COMPLETED):
+            console.print("[yellow]Warning: Active/completed project found.[/yellow]")
+            if not yes:
+                confirm = ask_yes("This will start fresh and ignore existing work. Continue?", default=False)
+                if not confirm:
+                    console.print("[yellow]Cancelled.[/yellow]")
+                    return 0
+        
+        options = RunOptions(
+            sessions=sessions if sessions is not None else (cfg.sessions or 10),
+            interval=interval if interval is not None else (cfg.interval or 30),
+            model=model or cfg.model or "opencode/big-pickle",
+            agent="autonomous",
+        )
+        
+        return 0 if run_gg_mode(project_dir, topic, options, log_callback=log) else 1
     
     state = detector.detect_project_state(project_dir)
     
     if state.state == detector.ProjectState.EMPTY:
-        console.print("[yellow]Empty directory. Use 'gg' to build from scratch.[/yellow]")
+        console.print("[red]Error:[/red] No project found. Use --gg to build something.")
         return 1
     
     if state.state == detector.ProjectState.ACTIVE and resume == 1:
@@ -271,49 +256,7 @@ def build(
         agent="autonomous",
     )
     
-    return 0 if run_build(project_dir, options, log_callback=log) else 1
-
-
-@app.command(name="run")
-def run_improve(
-    project: Optional[str] = typer.Option(None, "--project", help="Project directory"),
-    sessions: Optional[int] = typer.Option(None, "-s", "--sessions", help="Number of improvement sessions"),
-    interval: Optional[int] = typer.Option(None, "-i", "--interval", help="Minutes between sessions"),
-    resume: int = typer.Option(1, "-r", "--resume", help="Resume from this run number"),
-    model: Optional[str] = typer.Option(None, "-m", "--model", help="OpenCode model"),
-    yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompts"),
-) -> int:
-    """Improvement loop for existing projects: improvement sessions -> security review."""
-    if not check_prerequisites():
-        return 1
-    
-    project_dir = get_project_dir(project)
-    
-    # Load config for defaults
-    cfg = config.load_config(project_dir)
-    
-    state = detector.detect_project_state(project_dir)
-    
-    if state.state == detector.ProjectState.EMPTY:
-        console.print("[red]Error:[/red] No project found. Run 'gg' to build something.")
-        return 1
-    
-    if state.state not in (
-        detector.ProjectState.ACTIVE,
-        detector.ProjectState.BLUEPRINT_ONLY,
-        detector.ProjectState.HAS_CODE_NO_BLUEPRINT,
-    ):
-        console.print(f"[yellow]Project state: {state.state.value}. Running improvement loop.[/yellow]")
-    
-    options = RunOptions(
-        sessions=sessions if sessions is not None else (cfg.sessions or 10),
-        interval=interval if interval is not None else (cfg.interval or 30),
-        resume=resume,
-        model=model or cfg.model or "opencode/big-pickle",
-        agent="autonomous",
-    )
-    
-    return 0 if run_run(project_dir, options, log_callback=log) else 1
+    return 0 if run(project_dir, options, log_callback=log) else 1
 
 
 @app.command(name="config")
@@ -377,18 +320,10 @@ def config_cmd(
     return 0
 
 
-
-
-def version_callback(value: bool) -> None:
-    if value:
-        console.print(f"opencode-autopilot {__version__}")
-        raise typer.Exit()
-
-
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
-    project: Optional[str] = typer.Option(None, "--project", help="Project directory"),
+    project: Optional[str] = typer.Option(None, "--project", "-p", help="Project directory"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompts"),
     version: bool = typer.Option(False, "-v", "--version", callback=version_callback, is_eager=True, help="Show version"),
 ) -> int:

@@ -10,8 +10,8 @@ from . import prompts, scaffold
 from .opencode import run_agent
 
 
-def now() -> str:
-    """Get current timestamp."""
+def ist_now() -> str:
+    """Get current time in IST timezone."""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -24,23 +24,15 @@ class RunOptions:
     agent: str = "autonomous"
 
 
-@dataclass
-class GgOptions:
-    sessions: int = 10
-    interval: int = 30
-    model: str = "opencode/big-pickle"
-    agent: str = "autonomous"
-
-
 def sleep_seconds(seconds: int) -> None:
     """Sleep for the given number of seconds."""
     time.sleep(seconds)
 
 
-def run_gg(
+def run_gg_mode(
     project_dir: str | Path,
     topic: str | None,
-    options: GgOptions,
+    options: RunOptions,
     log_callback: Callable[[str], None] | None = None,
 ) -> bool:
     """Run gg command - full trust mode.
@@ -58,7 +50,7 @@ def run_gg(
     total_build_runs = options.sessions + 2  # blueprint + build + security
     
     log("=" * 56)
-    log("opencode-autopilot gg -- full trust mode")
+    log("opencode-autopilot run --gg -- full trust mode")
     if topic:
         log(f"Nudge    : {topic}")
     else:
@@ -68,19 +60,17 @@ def run_gg(
     log(f"Model    : {options.model}")
     log("=" * 56)
     
-    # Scaffold silently - gg handles its own README
     scaffold.ensure_scaffolded(project_dir, silent=True)
     
     # Session 0: Research
     log("=" * 56)
-    log(f"SESSION 0 -- Research | {now()}")
+    log(f"SESSION 0 -- Research | {ist_now()}")
     log("Agent is going online to pick something to build...")
     log("=" * 56)
     
-    research_prompt = prompts.gg_research_prompt(topic, now())
+    research_prompt = prompts.gg_research_prompt(topic, ist_now())
     readme_path = project_dir / "README.md"
     
-    # Remove any existing README so agent writes fresh one
     if readme_path.exists():
         readme_path.unlink()
     
@@ -108,7 +98,6 @@ def run_gg(
         log("ERROR: Failed to create README.md after multiple attempts.")
         return False
     
-    # Show the user what the agent decided
     try:
         readme_content = readme_path.read_text(encoding="utf-8")
         preview = "\n".join(readme_content.split("\n")[:12])
@@ -127,14 +116,13 @@ def run_gg(
     # Sessions 1-total_build_runs: Blueprint + Build + Security
     for run in range(1, total_build_runs + 1):
         log("=" * 56)
-        log(f"SESSION {run} / {total_build_runs} | {now()}")
+        log(f"SESSION {run} / {total_build_runs} | {ist_now()}")
         log("=" * 56)
         
         blueprint_path = project_dir / "BLUEPRINT.md"
         
         if run == 1:
-            # Blueprint session
-            prompt = prompts.gg_blueprint_prompt(run, total_build_runs, now())
+            prompt = prompts.gg_blueprint_prompt(run, total_build_runs, ist_now())
             
             blueprint_done = False
             retry_count = 0
@@ -159,11 +147,10 @@ def run_gg(
                 log("ERROR: Failed to create BLUEPRINT.md after multiple attempts.")
                 return False
         else:
-            # Build or final session
             if run == total_build_runs:
-                prompt = prompts.final_session_prompt(run, total_build_runs, now())
+                prompt = prompts.final_session_prompt(run, total_build_runs)
             else:
-                prompt = prompts.build_session_prompt(run, total_build_runs, now())
+                prompt = prompts.session_prompt(run, total_build_runs)
             
             run_agent(
                 prompt=prompt,
@@ -183,151 +170,92 @@ def run_gg(
     return True
 
 
-def run_build(
+def run(
     project_dir: str | Path,
     options: RunOptions,
     log_callback: Callable[[str], None] | None = None,
 ) -> bool:
-    """Run build command - bootstrap from README/blueprint.
+    """Run improvement/build loop for existing projects.
     
     Session structure:
     - Session 1: Blueprint (if not exists)
-    - Sessions 2-(N+1): Build
+    - Sessions 2-(N+1): Build/Improvement
     - Session N+2: Security/final
     """
     project_dir = Path(project_dir).resolve()
     
     log = log_callback or (lambda x: None)
     
-    total_runs = options.sessions + 2  # 1 blueprint + N build + 1 security
+    blueprint_path = project_dir / "BLUEPRINT.md"
+    has_blueprint = blueprint_path.exists()
     
-    log("=" * 56)
-    log("opencode-autopilot build")
-    log(f"Project  : {project_dir}")
-    log(f"Sessions : 1 blueprint + {options.sessions} build + 1 security = {total_runs} total")
-    log(f"Interval : {options.interval} minutes")
-    log(f"Model    : {options.model}")
-    log("=" * 56)
-    
-    # Ensure scaffolded
-    scaffold.ensure_scaffolded(project_dir, silent=True)
-    
-    # Resume from specified run
-    run = max(1, options.resume)
-    max_retries = 3
-    
-    while run <= total_runs:
-        log("=" * 56)
-        log(f"RUN {run} / {total_runs} | {now()}")
-        log("=" * 56)
-        
-        blueprint_path = project_dir / "BLUEPRINT.md"
-        
-        # Session 1 -- Blueprint
-        if run == 1:
-            if blueprint_path.exists():
-                log("BLUEPRINT.md exists. Skipping to run 2.")
-                run = 2
-            else:
-                prompt = prompts.blueprint_prompt(run, total_runs, now())
-                
-                blueprint_done = False
-                retry_count = 0
-                
-                while not blueprint_done and retry_count < max_retries:
-                    run_agent(
-                        prompt=prompt,
-                        project_dir=project_dir,
-                        model=options.model,
-                        agent=options.agent,
-                    )
-                    
-                    if blueprint_path.exists():
-                        blueprint_done = True
-                        log("BLUEPRINT.md confirmed.")
-                    else:
-                        retry_count += 1
-                        log(f"BLUEPRINT.md not found. Retrying in 60 seconds... (attempt {retry_count}/{max_retries})")
-                        sleep_seconds(60)
-                
-                if not blueprint_done:
-                    log("ERROR: Failed to create BLUEPRINT.md after multiple attempts.")
-                    return False
-                
-                if run < total_runs:
-                    log(f"Waiting {options.interval} minutes...")
-                    sleep_seconds(options.interval * 60)
-                
-                run += 1
-                continue
-        
-        # Build or final session
-        if run == total_runs:
-            prompt = prompts.final_session_prompt(run, total_runs, now())
-        else:
-            prompt = prompts.build_session_prompt(run, total_runs, now())
-        
-        run_agent(
-            prompt=prompt,
-            project_dir=project_dir,
-            model=options.model,
-            agent=options.agent,
-        )
-        log(f"Run {run} complete.")
-        
-        if run < total_runs:
-            log(f"Waiting {options.interval} minutes...")
-            sleep_seconds(options.interval * 60)
-        
-        run += 1
-    
-    log("=" * 56)
-    log("Build cycle complete. Review HEARTBEAT/ and BLUEPRINT.md.")
-    log("=" * 56)
-    return True
-
-
-def run_run(
-    project_dir: str | Path,
-    options: RunOptions,
-    log_callback: Callable[[str], None] | None = None,
-) -> bool:
-    """Run run command - improvement loop for existing projects.
-    
-    Session structure:
-    - Sessions 1-N: Improvement
-    - Session N+1: Security/final
-    """
-    project_dir = Path(project_dir).resolve()
-    
-    log = log_callback or (lambda x: None)
-    
-    total_runs = options.sessions + 1  # N improvement + 1 security
+    total_runs = options.sessions + 2 if not has_blueprint else options.sessions + 1
     
     log("=" * 56)
     log("opencode-autopilot run")
     log(f"Project  : {project_dir}")
-    log(f"Sessions : {options.sessions} improvement + 1 security = {total_runs} total")
+    if has_blueprint:
+        log(f"Sessions : {options.sessions} improvement + 1 security = {total_runs} total")
+    else:
+        log(f"Sessions : 1 blueprint + {options.sessions} build + 1 security = {total_runs} total")
     log(f"Interval : {options.interval} minutes")
     log(f"Model    : {options.model}")
     log("=" * 56)
     
-    # Ensure scaffolded
     scaffold.ensure_scaffolded(project_dir, silent=True)
     
-    # Resume from specified run
-    run = max(1, options.resume)
+    run_num = max(1, options.resume)
+    max_retries = 3
     
-    while run <= total_runs:
+    while run_num <= total_runs:
         log("=" * 56)
-        log(f"RUN {run} / {total_runs} | {now()}")
+        log(f"RUN {run_num} / {total_runs} | {ist_now()}")
         log("=" * 56)
         
-        # Improvement or final session
-        if run == total_runs:
-            prompt = prompts.final_session_prompt(run, total_runs, now())
+        # Session 1 -- Blueprint (if needed)
+        if run_num == 1 and not has_blueprint:
+            if blueprint_path.exists():
+                log("BLUEPRINT.md exists. Skipping to run 2.")
+                run_num = 2
+                continue
+            
+            prompt = prompts.blueprint_prompt(run_num, total_runs, ist_now())
+            
+            blueprint_done = False
+            retry_count = 0
+            
+            while not blueprint_done and retry_count < max_retries:
+                run_agent(
+                    prompt=prompt,
+                    project_dir=project_dir,
+                    model=options.model,
+                    agent=options.agent,
+                )
+                
+                if blueprint_path.exists():
+                    blueprint_done = True
+                    log("BLUEPRINT.md confirmed.")
+                else:
+                    retry_count += 1
+                    log(f"BLUEPRINT.md not found. Retrying in 60 seconds... (attempt {retry_count}/{max_retries})")
+                    sleep_seconds(60)
+            
+            if not blueprint_done:
+                log("ERROR: Failed to create BLUEPRINT.md after multiple attempts.")
+                return False
+            
+            if run_num < total_runs:
+                log(f"Waiting {options.interval} minutes...")
+                sleep_seconds(options.interval * 60)
+            
+            run_num += 1
+            continue
+        
+        # Build or final session
+        if run_num == total_runs:
+            prompt = prompts.final_session_prompt(run_num, total_runs)
         else:
-            prompt = prompts.run_session_prompt(run, total_runs, now())
+            prompt = prompts.session_prompt(run_num, total_runs)
         
         run_agent(
             prompt=prompt,
@@ -335,15 +263,15 @@ def run_run(
             model=options.model,
             agent=options.agent,
         )
-        log(f"Run {run} complete.")
+        log(f"Run {run_num} complete.")
         
-        if run < total_runs:
+        if run_num < total_runs:
             log(f"Waiting {options.interval} minutes...")
             sleep_seconds(options.interval * 60)
         
-        run += 1
+        run_num += 1
     
     log("=" * 56)
-    log("Improvement cycle complete. Review HEARTBEAT/.")
+    log("Run cycle complete. Review HEARTBEAT/ and BLUEPRINT.md.")
     log("=" * 56)
     return True

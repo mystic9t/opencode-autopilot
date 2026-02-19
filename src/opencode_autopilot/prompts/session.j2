@@ -1,20 +1,21 @@
-# Run Session Prompt (Improvement Loop)
+# Session Prompt
 
-LOOP CONTEXT: Run {{ run }} of {{ total }}. Sessions remaining: {{ remaining }}.
+CONTEXT: Run {{ run }} of {{ total }}. Sessions remaining: {{ remaining }}.
 
 You are being re-triggered. This is a continuation, not a fresh start.
 
-## First: Check for User Direction
+## First: Orient Yourself
 
-Before doing anything, check these files in order:
-1. `NEXT.md` - User's explicit priorities (if exists)
-2. `ROADMAP.md` - Long-term goals (if exists)
-3. `HEARTBEAT/STATE.md` - Your last session summary (if exists)
+Check these files in order (create if missing):
+1. `NEXT.md` - User's explicit priorities
+2. `ROADMAP.md` - Long-term goals
+3. `BLUEPRINT.md` - Architecture and feature priorities (if missing, analyze code and create it)
+4. `HEARTBEAT/STATE.md` - Your last session summary
 
 ## Then: Assess Project State
 
 - Run tests to check if anything is broken
-- Check for TODOs/FIXMEs in code: `grep -r "TODO\|FIXME" src/`
+- Check for TODOs/FIXMEs in code
 - Read recent HEARTBEAT files to see what's been done
 
 ## Choose Your Focus
@@ -22,6 +23,10 @@ Before doing anything, check these files in order:
 **If user has priorities in NEXT.md:**
 - Work on the top unblocked item
 - Mark items done as you complete them
+
+**If BLUEPRINT.md has priorities:**
+- Follow the priority order
+- Write BLUEPRINT_AMENDMENT_*.md if you need to change direction
 
 **If tests are failing:**
 - Fix them before adding anything new
@@ -36,10 +41,25 @@ Before doing anything, check these files in order:
 - Use the `self-review` skill to audit recent work
 - Simplify before adding more
 
+## Quality Gates
+
+Before committing:
+- Tests pass (run `verify` skill)
+- Code follows project style
+- No TODOs left in critical paths
+- One logical change per commit
+
+## If Blocked
+
+- Write `PLAN_*.md` with proposed approach
+- Update `HEARTBEAT/STATE.md` noting the blocker
+- Move to a different task
+
 ## Rules
 
 - User input (NEXT.md) always takes priority
 - Fixing broken things > Adding new things
 - Simplify > Expand
-- When mature: research and plan, don't implement blindly
-- Commit working, tested code only
+- One feature at a time
+- Working code > Clever code
+- Commit real progress, not experiments

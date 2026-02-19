@@ -1,22 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-
-
-_env: Environment | None = None
-
-
-def get_env() -> Environment:
-    """Get or create the Jinja2 environment with autoescape enabled."""
-    global _env
-    if _env is None:
-        prompts_dir = Path(__file__).parent / "prompts"
-        _env = Environment(
-            loader=FileSystemLoader(prompts_dir),
-            autoescape=select_autoescape(),
-        )
-    return _env
+from jinja2 import Template
 
 
 def get_prompts_dir() -> Path:
@@ -25,8 +10,8 @@ def get_prompts_dir() -> Path:
 
 def render_prompt(name: str, **kwargs) -> str:
     """Load and render a prompt template with variables."""
-    env = get_env()
-    template = env.get_template(f"{name}.j2")
+    prompt_path = get_prompts_dir() / f"{name}.j2"
+    template = Template(prompt_path.read_text())
     return template.render(**kwargs)
 
 
@@ -58,30 +43,18 @@ def blueprint_prompt(run: int, total: int, date: str) -> str:
     )
 
 
-def build_session_prompt(run: int, total: int, date: str) -> str:
+def session_prompt(run: int, total: int) -> str:
     return render_prompt(
-        "build_session",
+        "session",
         run=run,
         total=total,
-        date=date,
         remaining=total - run,
     )
 
 
-def run_session_prompt(run: int, total: int, date: str) -> str:
-    return render_prompt(
-        "run_session",
-        run=run,
-        total=total,
-        date=date,
-        remaining=total - run,
-    )
-
-
-def final_session_prompt(run: int, total: int, date: str) -> str:
+def final_session_prompt(run: int, total: int) -> str:
     return render_prompt(
         "final_session",
         run=run,
         total=total,
-        date=date,
     )
