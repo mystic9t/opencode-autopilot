@@ -1,7 +1,22 @@
 from __future__ import annotations
 
 from pathlib import Path
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+
+_env: Environment | None = None
+
+
+def get_env() -> Environment:
+    """Get or create the Jinja2 environment with autoescape enabled."""
+    global _env
+    if _env is None:
+        prompts_dir = Path(__file__).parent / "prompts"
+        _env = Environment(
+            loader=FileSystemLoader(prompts_dir),
+            autoescape=select_autoescape(),
+        )
+    return _env
 
 
 def get_prompts_dir() -> Path:
@@ -10,8 +25,8 @@ def get_prompts_dir() -> Path:
 
 def render_prompt(name: str, **kwargs) -> str:
     """Load and render a prompt template with variables."""
-    prompt_path = get_prompts_dir() / f"{name}.j2"
-    template = Template(prompt_path.read_text())
+    env = get_env()
+    template = env.get_template(f"{name}.j2")
     return template.render(**kwargs)
 
 

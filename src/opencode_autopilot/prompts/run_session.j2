@@ -1,7 +1,45 @@
 # Run Session Prompt (Improvement Loop)
 
-LOOP CONTEXT: Run {{ run }} of {{ total }}. Date: {{ date }} IST. Sessions remaining: {{ remaining }}.
+LOOP CONTEXT: Run {{ run }} of {{ total }}. Sessions remaining: {{ remaining }}.
 
 You are being re-triggered. This is a continuation, not a fresh start.
-Read your heartbeat, orient yourself, and work for the full session.
-Do not stop early. Commit real progress.
+
+## First: Check for User Direction
+
+Before doing anything, check these files in order:
+1. `NEXT.md` - User's explicit priorities (if exists)
+2. `ROADMAP.md` - Long-term goals (if exists)
+3. `HEARTBEAT/STATE.md` - Your last session summary (if exists)
+
+## Then: Assess Project State
+
+- Run tests to check if anything is broken
+- Check for TODOs/FIXMEs in code: `grep -r "TODO\|FIXME" src/`
+- Read recent HEARTBEAT files to see what's been done
+
+## Choose Your Focus
+
+**If user has priorities in NEXT.md:**
+- Work on the top unblocked item
+- Mark items done as you complete them
+
+**If tests are failing:**
+- Fix them before adding anything new
+
+**If project seems mature (nothing broken, no clear next step):**
+- Run the `research` skill to find new ideas
+- Write `PLAN_*.md` for major changes requiring user approval
+- Do NOT implement major changes without user direction
+- Update `HEARTBEAT/STATE.md` to note `status: mature, awaiting direction`
+
+**If directionless or recent work feels scattered:**
+- Use the `self-review` skill to audit recent work
+- Simplify before adding more
+
+## Rules
+
+- User input (NEXT.md) always takes priority
+- Fixing broken things > Adding new things
+- Simplify > Expand
+- When mature: research and plan, don't implement blindly
+- Commit working, tested code only

@@ -1,8 +1,41 @@
 # Build Session Prompt
 
-BOOTSTRAP CONTEXT: Run {{ run }} of {{ total }}. Date: {{ date }} IST. Sessions remaining: {{ remaining }}.
+BOOTSTRAP CONTEXT: Run {{ run }} of {{ total }}. Sessions remaining: {{ remaining }}.
 
-You are being re-triggered. This is a continuation, not a fresh start.
-Read your heartbeat and BLUEPRINT.md before doing anything else.
-Do not deviate from the blueprint stack or data model without writing BLUEPRINT_AMENDMENT_<date>.md first.
-Work for the full session. Do not stop early. Commit real progress.
+You are being re-triggered. Read HEARTBEAT/ and BLUEPRINT.md before doing anything else.
+
+## Build Process
+
+1. **Read the Blueprint** - BLUEPRINT.md has the architecture and priorities
+2. **Check Progress** - Read HEARTBEAT/ files to see what's done
+3. **Pick Next Feature** - Follow blueprint priority order
+4. **Implement** - Write clean, working code
+5. **Verify** - Run tests, fix issues
+6. **Commit** - Use the commit skill for disciplined commits
+
+## User Direction
+
+Check for user input:
+- `NEXT.md` - User's explicit priorities (overrides blueprint)
+- `ROADMAP.md` - Long-term goals
+
+## Quality Gates
+
+Before committing:
+- Tests pass (run `verify` skill)
+- Code follows project style
+- No TODOs left in critical paths
+- One logical change per commit
+
+## If Blocked
+
+- Write `PLAN_*.md` with proposed approach
+- Update `HEARTBEAT/STATE.md` noting the blocker
+- Move to a different feature
+
+## Rules
+
+- Don't deviate from blueprint without writing BLUEPRINT_AMENDMENT_*.md
+- One feature at a time
+- Working code > Clever code
+- Commit real progress, not experiments

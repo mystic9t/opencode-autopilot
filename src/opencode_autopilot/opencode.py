@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-import subprocess
 import shutil
 from pathlib import Path
+
+from .cli_runner import (
+    ToolResult,
+    detect_available_tools,
+    run_with_fallback,
+)
 
 
 def is_opencode_installed() -> bool:
@@ -10,44 +15,62 @@ def is_opencode_installed() -> bool:
     return shutil.which("opencode") is not None
 
 
+def is_kilocode_installed() -> bool:
+    """Check if kilocode CLI is available."""
+    return shutil.which("kilo") is not None
+
+
+def check_cli_tools() -> tuple[bool, str]:
+    """Check if at least one CLI tool is available."""
+    available = detect_available_tools()
+    
+    if not available:
+        return False, """No CLI tools found. Install at least one:
+
+OpenCode (recommended):
+  curl -fsSL https://opencode.ai/install | bash
+
+Kilocode (alternative):
+  See https://kilocode.ai for installation
+
+Both tools work with this autopilot. If both are installed, OpenCode is preferred.
+"""
+    
+    tools_str = " and ".join(available)
+    return True, f"CLI tools available: {tools_str}"
+
+
 def run_opencode(
     prompt: str,
     project_dir: str | Path,
     model: str = "opencode/big-pickle",
     agent: str = "autonomous",
+    log_callback=None,
 ) -> bool:
-    """Run opencode with the given prompt.
+    """Run opencode or kilocode with the given prompt.
     
-    Returns True if the command succeeded (exit code 0), False otherwise.
+    Uses fallback: if opencode is rate limited, tries kilocode.
+    Returns True if the command succeeded, False otherwise.
     """
-    project_dir = Path(project_dir).resolve()
+    result, tool_used, stderr = run_with_fallback(
+        prompt=prompt,
+        project_dir=project_dir,
+        model=model,
+        agent=agent,
+        log_callback=log_callback,
+    )
     
-    # Build the command
-    cmd = [
-        "opencode",
-        "run",
-        "--agent", agent,
-        "--model", model,
-        prompt,
-    ]
-    
-    try:
-        result = subprocess.run(
-            cmd,
-            cwd=project_dir,
-            check=False,  # Don't raise on non-zero exit
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
-    except Exception:
-        return False
+    return result == ToolResult.SUCCESS
 
 
 def check_opencode_installation() -> tuple[bool, str]:
     """Check opencode installation and return status and message."""
     if is_opencode_installed():
         return True, "opencode is installed"
+    
+    # Check if kilocode is available as fallback
+    if is_kilocode_installed():
+        return True, "opencode not found, but kilocode is available as fallback"
     
     # Provide helpful installation instructions
     return False, """opencode is not installed or not in PATH.

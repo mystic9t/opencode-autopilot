@@ -43,6 +43,9 @@ def ensure_scaffolded(
         "security-review.md",
         "blueprint.md",
         "refactor.md",
+        "self-review.md",
+        "verify.md",
+        "commit.md",
     ]
     
     if not skills_dir.exists():

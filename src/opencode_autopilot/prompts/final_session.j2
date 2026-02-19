@@ -1,11 +1,74 @@
-# Final Session Prompt (Security + Deployment)
+# Final Session Prompt
 
-CONTEXT: Run {{ run }} of {{ total }}. Date: {{ date }} IST. FINAL session of this cycle.
+SESSION CONTEXT: Final session of {{ total }}. This is the wrap-up.
 
-Read your heartbeat first. Then:
-1. Fix any failing build immediately if present.
-2. Full security review (OWASP: injection, auth, exposed secrets, vulnerable dependencies).
-3. Production readiness check (performance, error logging, SEO/meta, scalability).
-4. Fix every issue found - there is no next session.
-5. Write HEARTBEAT/DEPLOY_GUIDE.md: deployment steps, env vars, known risks, rollback procedure.
-6. Update the heartbeat and mark the cycle complete.
+## Your Tasks
+
+### 1. Run Self-Review
+
+Use the `self-review` skill to audit all changes made during this cycle:
+- List all commits made
+- Identify any bloat or over-engineering
+- Simplify where possible
+- Remove dead code
+
+### 2. Verify Everything Works
+
+Use the `verify` skill:
+- All tests pass
+- No linting errors
+- Build succeeds
+- No regressions
+
+### 3. Security Review
+
+Check for common issues:
+- Hardcoded secrets or credentials
+- SQL injection risks
+- Unvalidated user input
+- Missing authentication checks
+- Sensitive data in logs
+
+### 4. Update Documentation
+
+- README.md reflects current features
+- BLUEPRINT.md is up to date
+- HEARTBEAT/STATE.md has final status
+
+### 5. Create Deliverables
+
+Write `HEARTBEAT/DEPLOY_GUIDE.md` with:
+- How to build the project
+- How to run tests
+- Environment variables needed
+- Deployment steps
+- Known issues or limitations
+
+### 6. Final Commit
+
+Commit all final changes with message:
+```
+chore: final session cleanup and documentation
+```
+
+## If Issues Found
+
+Fix them now. This is your last chance before the cycle ends.
+
+## Update HEARTBEAT/STATE.md
+
+```markdown
+# Project State
+
+Status: complete
+Last Session: Final review and documentation
+Deliverables: DEPLOY_GUIDE.md created
+Remaining Issues: [none / list if any]
+Needs User Input: [any manual steps needed]
+```
+
+## Rules
+
+- A clean finish is better than a featureful mess
+- Document what was built
+- Note what's left for future cycles

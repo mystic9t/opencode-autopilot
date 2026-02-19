@@ -6,7 +6,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
-from . import config, detector
+from . import __version__, config, detector
 from .opencode import check_opencode_installation
 from .runner import GgOptions, RunOptions, run_gg, run_build, run_run
 
@@ -377,11 +377,20 @@ def config_cmd(
     return 0
 
 
+
+
+def version_callback(value: bool) -> None:
+    if value:
+        console.print(f"opencode-autopilot {__version__}")
+        raise typer.Exit()
+
+
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
     project: Optional[str] = typer.Option(None, "--project", help="Project directory"),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmation prompts"),
+    version: bool = typer.Option(False, "--version", callback=version_callback, is_eager=True, help="Show version"),
 ) -> int:
     """Auto-detect project state and run the appropriate command."""
     if ctx.invoked_subcommand is not None:
