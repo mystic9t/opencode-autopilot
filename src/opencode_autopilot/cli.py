@@ -7,7 +7,7 @@ import typer
 from rich.console import Console
 
 from . import __version__, config, detector
-from .opencode import check_opencode_installation
+from .opencode import check_tool_availability
 from .runner import GgOptions, RunOptions, run_gg, run_build, run_run
 
 # Configure Rich console for Windows compatibility
@@ -42,7 +42,7 @@ def get_project_dir(dir_arg: Optional[str]) -> Path:
 
 def check_prerequisites() -> bool:
     """Check if opencode is installed. Returns True if all good."""
-    installed, message = check_opencode_installation()
+    installed, message = check_tool_availability()
     if not installed:
         console.print(f"[red]Error:[/red] {message}")
         return False

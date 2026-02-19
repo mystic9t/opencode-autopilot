@@ -40,14 +40,14 @@ Both tools work with this autopilot. If both are installed, OpenCode is preferre
     return True, f"CLI tools available: {tools_str}"
 
 
-def run_opencode(
+def run_agent(
     prompt: str,
     project_dir: str | Path,
     model: str = "opencode/big-pickle",
     agent: str = "autonomous",
     log_callback=None,
 ) -> bool:
-    """Run opencode or kilocode with the given prompt.
+    """Run agent session using the given prompt.
     
     Uses fallback: if opencode is rate limited, tries kilocode.
     Returns True if the command succeeded, False otherwise.
@@ -63,8 +63,8 @@ def run_opencode(
     return result == ToolResult.SUCCESS
 
 
-def check_opencode_installation() -> tuple[bool, str]:
-    """Check opencode installation and return status and message."""
+def check_tool_availability() -> tuple[bool, str]:
+    """Check tool availability and return status and message."""
     if is_opencode_installed():
         return True, "opencode is installed"
     

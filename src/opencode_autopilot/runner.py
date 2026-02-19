@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import Callable
 
 from . import prompts, scaffold
-from .opencode import run_opencode
+from .opencode import run_agent
 
 
-def ist_now() -> str:
-    """Get current time in IST timezone."""
+def now() -> str:
+    """Get current timestamp."""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -73,11 +73,11 @@ def run_gg(
     
     # Session 0: Research
     log("=" * 56)
-    log(f"SESSION 0 -- Research | {ist_now()}")
+    log(f"SESSION 0 -- Research | {now()}")
     log("Agent is going online to pick something to build...")
     log("=" * 56)
     
-    research_prompt = prompts.gg_research_prompt(topic, ist_now())
+    research_prompt = prompts.gg_research_prompt(topic, now())
     readme_path = project_dir / "README.md"
     
     # Remove any existing README so agent writes fresh one
@@ -89,7 +89,7 @@ def run_gg(
     max_retries = 3
     
     while not readme_done and retry_count < max_retries:
-        run_opencode(
+        run_agent(
             prompt=research_prompt,
             project_dir=project_dir,
             model=options.model,
@@ -127,20 +127,20 @@ def run_gg(
     # Sessions 1-total_build_runs: Blueprint + Build + Security
     for run in range(1, total_build_runs + 1):
         log("=" * 56)
-        log(f"SESSION {run} / {total_build_runs} | {ist_now()}")
+        log(f"SESSION {run} / {total_build_runs} | {now()}")
         log("=" * 56)
         
         blueprint_path = project_dir / "BLUEPRINT.md"
         
         if run == 1:
             # Blueprint session
-            prompt = prompts.gg_blueprint_prompt(run, total_build_runs, ist_now())
+            prompt = prompts.gg_blueprint_prompt(run, total_build_runs, now())
             
             blueprint_done = False
             retry_count = 0
             
             while not blueprint_done and retry_count < max_retries:
-                run_opencode(
+                run_agent(
                     prompt=prompt,
                     project_dir=project_dir,
                     model=options.model,
@@ -161,11 +161,11 @@ def run_gg(
         else:
             # Build or final session
             if run == total_build_runs:
-                prompt = prompts.final_session_prompt(run, total_build_runs, ist_now())
+                prompt = prompts.final_session_prompt(run, total_build_runs, now())
             else:
-                prompt = prompts.build_session_prompt(run, total_build_runs, ist_now())
+                prompt = prompts.build_session_prompt(run, total_build_runs, now())
             
-            run_opencode(
+            run_agent(
                 prompt=prompt,
                 project_dir=project_dir,
                 model=options.model,
@@ -218,7 +218,7 @@ def run_build(
     
     while run <= total_runs:
         log("=" * 56)
-        log(f"RUN {run} / {total_runs} | {ist_now()}")
+        log(f"RUN {run} / {total_runs} | {now()}")
         log("=" * 56)
         
         blueprint_path = project_dir / "BLUEPRINT.md"
@@ -229,13 +229,13 @@ def run_build(
                 log("BLUEPRINT.md exists. Skipping to run 2.")
                 run = 2
             else:
-                prompt = prompts.blueprint_prompt(run, total_runs, ist_now())
+                prompt = prompts.blueprint_prompt(run, total_runs, now())
                 
                 blueprint_done = False
                 retry_count = 0
                 
                 while not blueprint_done and retry_count < max_retries:
-                    run_opencode(
+                    run_agent(
                         prompt=prompt,
                         project_dir=project_dir,
                         model=options.model,
@@ -263,11 +263,11 @@ def run_build(
         
         # Build or final session
         if run == total_runs:
-            prompt = prompts.final_session_prompt(run, total_runs, ist_now())
+            prompt = prompts.final_session_prompt(run, total_runs, now())
         else:
-            prompt = prompts.build_session_prompt(run, total_runs, ist_now())
+            prompt = prompts.build_session_prompt(run, total_runs, now())
         
-        run_opencode(
+        run_agent(
             prompt=prompt,
             project_dir=project_dir,
             model=options.model,
@@ -320,16 +320,16 @@ def run_run(
     
     while run <= total_runs:
         log("=" * 56)
-        log(f"RUN {run} / {total_runs} | {ist_now()}")
+        log(f"RUN {run} / {total_runs} | {now()}")
         log("=" * 56)
         
         # Improvement or final session
         if run == total_runs:
-            prompt = prompts.final_session_prompt(run, total_runs, ist_now())
+            prompt = prompts.final_session_prompt(run, total_runs, now())
         else:
-            prompt = prompts.run_session_prompt(run, total_runs, ist_now())
+            prompt = prompts.run_session_prompt(run, total_runs, now())
         
-        run_opencode(
+        run_agent(
             prompt=prompt,
             project_dir=project_dir,
             model=options.model,
