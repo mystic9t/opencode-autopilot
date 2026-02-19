@@ -5,6 +5,7 @@ description: Audit your own changes for quality and simplicity
 # Self-Review Skill
 
 Use this skill when:
+
 - You've made many changes across multiple sessions
 - You're uncertain if your work is valuable
 - Before a final or security session
@@ -29,6 +30,7 @@ git diff --shortstat main
 ### 2. Evaluate Each Change
 
 For each significant file or commit, ask:
+
 - Does it serve the project's core purpose?
 - Is it simpler or more complex than before?
 - Would you merge it if you were reviewing someone else's PR?
@@ -36,6 +38,7 @@ For each significant file or commit, ask:
 ### 3. Identify Bloat Signals
 
 Watch for:
+
 - Files over 300 lines that could be smaller
 - Features not mentioned in README/BLUEPRINT/NEXT.md
 - Duplicate or overlapping code
@@ -64,6 +67,7 @@ Needs User Input: [yes/no - if yes, write PLAN_*.md]
 ### 6. Act
 
 If cleanup is needed, do it now rather than adding more.
+
 - Simplify complex files
 - Remove dead code
 - Consolidate duplicates
