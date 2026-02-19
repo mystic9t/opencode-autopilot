@@ -15,6 +15,7 @@ Audit the codebase for:
 7. **Error handling** - Stack traces or internals leaking to the client.
 
 For each issue:
+
 - Record file, line, severity (critical / high / medium / low).
 - Fix critical and high immediately.
 - Log medium and low in the heartbeat for future sessions.

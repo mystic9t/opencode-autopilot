@@ -5,9 +5,11 @@ description: Safe refactoring checklist
 # Refactor Skill
 
 Before starting, confirm:
+
 - Is there a concrete problem being solved? If this is purely aesthetic preference, stop.
 
 Checklist:
+
 1. Read every file in scope before touching anything.
 2. Make one logical change at a time.
 3. After each change, verify every call site of any modified function or type.
