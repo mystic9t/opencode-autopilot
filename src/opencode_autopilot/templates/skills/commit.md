@@ -37,13 +37,15 @@ git add -p
 ### 3. Write a Good Commit Message
 
 Format:
-```
+
+```plaintext
 <type>: <brief description>
 
 <optional longer explanation>
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `refactor`: Code change without behavior change
@@ -52,7 +54,8 @@ Types:
 - `chore`: Maintenance, dependencies
 
 Examples:
-```
+
+```plaintext
 feat: add user preference persistence
 fix: resolve login redirect loop
 refactor: simplify config loading logic

@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12', '3.13', '3.14']
     
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
           version: 'latest'
 
       - name: Install dependencies
-        run: uv pip install -e .
+        run: uv sync
 
       - name: Run linting
         run: uvx ruff check src/
@@ -42,9 +42,9 @@ jobs:
 
       - name: Test installation
         run: |
-          uv pip install dist/*.whl
-          opencode-autopilot --version
-          opencode-autopilot --help
+          uv pip install dist/*.whl --reinstall
+          uv run opencode-autopilot --version
+          uv run opencode-autopilot --help
 
   release-build:
     needs: test

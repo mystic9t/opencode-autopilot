@@ -68,7 +68,7 @@ def check_rate_limit(stderr: str, tool_name: str) -> bool:
     config = TOOL_CONFIG.get(tool_name)
     if not config:
         return False
-    
+
     for pattern in config.rate_limit_patterns:
         if re.search(pattern, stderr, re.IGNORECASE):
             return True
@@ -83,44 +83,46 @@ def run_tool(
     agent: str = "autonomous",
 ) -> tuple[ToolResult, str]:
     """Run a CLI tool with the given prompt.
-    
+
     Returns (result, stderr) where result indicates success/failure/rate_limit.
     """
     config = TOOL_CONFIG.get(tool_name)
     if not config:
         return ToolResult.FAILED, f"Unknown tool: {tool_name}"
-    
+
     project_dir = Path(project_dir).resolve()
     effective_model = model or config.default_model
-    
+
     args = []
     for arg in config.run_args:
         arg = arg.replace("{agent}", agent)
         arg = arg.replace("{model}", effective_model)
         arg = arg.replace("{prompt}", prompt)
         args.append(arg)
-    
+
     cmd = [config.command] + args
-    
+
     try:
         result = subprocess.run(
             cmd,
             cwd=project_dir,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
-        
+
         stderr = result.stderr or ""
-        
+
         if result.returncode == 0:
             return ToolResult.SUCCESS, stderr
-        
+
         if check_rate_limit(stderr, tool_name):
             return ToolResult.RATE_LIMITED, stderr
-        
+
         return ToolResult.FAILED, stderr
-    
+
     except FileNotFoundError:
         return ToolResult.FAILED, f"{config.command} not found in PATH"
     except Exception as e:
@@ -136,17 +138,17 @@ def run_with_fallback(
     log_callback=None,
 ) -> tuple[ToolResult, str, str]:
     """Run with automatic fallback to alternative tool on rate limit.
-    
+
     Returns (result, tool_used, stderr).
     """
     log = log_callback or (lambda x: None)
     excluded = excluded_tools or []
-    
+
     available = [t for t in detect_available_tools() if t not in excluded]
-    
+
     if not available:
         return ToolResult.FAILED, "", "No CLI tools available"
-    
+
     for tool_name in available:
         log(f"Running with {tool_name}...")
         result, stderr = run_tool(
@@ -156,15 +158,15 @@ def run_with_fallback(
             model=model,
             agent=agent,
         )
-        
+
         if result == ToolResult.SUCCESS:
             return result, tool_name, stderr
-        
+
         if result == ToolResult.RATE_LIMITED:
             log(f"{tool_name} hit rate limit, trying next tool...")
             continue
-        
+
         log(f"{tool_name} failed: {stderr[:200]}")
         continue
-    
+
     return ToolResult.RATE_LIMITED, "", "All tools hit rate limits"

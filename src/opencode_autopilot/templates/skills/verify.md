@@ -77,5 +77,6 @@ cargo test
 ## Output
 
 After running checks, update HEARTBEAT/STATE.md with the result:
+
 - All checks pass: Note "verified" with timestamp
 - Checks fail: Note what's failing and priority to fix
