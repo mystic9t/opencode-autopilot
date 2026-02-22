@@ -19,7 +19,7 @@ PAUSED_FILE = "PAUSED_RATE_LIMIT.md"
 def load_rate_limit_status(project_dir: str | Path) -> RateLimitStatus:
     """Load rate limit status from file."""
     project_dir = Path(project_dir)
-    status_file = project_dir / "HEARTBEAT" / RATE_LIMIT_FILE
+    status_file = project_dir / ".opencode-autopilot" / "HEARTBEAT" / RATE_LIMIT_FILE
     
     if not status_file.exists():
         return RateLimitStatus()
@@ -49,8 +49,8 @@ def save_rate_limit_status(
 ) -> None:
     """Save rate limit status to file."""
     project_dir = Path(project_dir)
-    heartbeat_dir = project_dir / "HEARTBEAT"
-    heartbeat_dir.mkdir(exist_ok=True)
+    heartbeat_dir = project_dir / ".opencode-autopilot" / "HEARTBEAT"
+    heartbeat_dir.mkdir(parents=True, exist_ok=True)
     
     status_file = heartbeat_dir / RATE_LIMIT_FILE
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -78,8 +78,8 @@ def mark_tool_limited(project_dir: str | Path, tool_name: str) -> None:
 def clear_rate_limit_status(project_dir: str | Path) -> None:
     """Clear rate limit status."""
     project_dir = Path(project_dir)
-    status_file = project_dir / "HEARTBEAT" / RATE_LIMIT_FILE
-    paused_file = project_dir / "HEARTBEAT" / PAUSED_FILE
+    status_file = project_dir / ".opencode-autopilot" / "HEARTBEAT" / RATE_LIMIT_FILE
+    paused_file = project_dir / ".opencode-autopilot" / "HEARTBEAT" / PAUSED_FILE
     
     if status_file.exists():
         status_file.unlink()
@@ -90,15 +90,15 @@ def clear_rate_limit_status(project_dir: str | Path) -> None:
 def is_paused(project_dir: str | Path) -> bool:
     """Check if the run is paused due to rate limits."""
     project_dir = Path(project_dir)
-    paused_file = project_dir / "HEARTBEAT" / PAUSED_FILE
+    paused_file = project_dir / ".opencode-autopilot" / "HEARTBEAT" / PAUSED_FILE
     return paused_file.exists()
 
 
 def write_paused_file(project_dir: str | Path, reason: str = "") -> None:
     """Write a paused marker file."""
     project_dir = Path(project_dir)
-    heartbeat_dir = project_dir / "HEARTBEAT"
-    heartbeat_dir.mkdir(exist_ok=True)
+    heartbeat_dir = project_dir / ".opencode-autopilot" / "HEARTBEAT"
+    heartbeat_dir.mkdir(parents=True, exist_ok=True)
     
     paused_file = heartbeat_dir / PAUSED_FILE
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

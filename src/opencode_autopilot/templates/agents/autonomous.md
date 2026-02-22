@@ -56,7 +56,7 @@ Use them as needed. They contain useful checklists and processes.
 
 ## Memory
 
-Always read and write to HEARTBEAT/:
+Always read and write to `.opencode-autopilot/HEARTBEAT/`:
 - `STATE.md` - Current status, next priority, blockers
 - `SESSION_LOGS/` - What happened each session
 - `PLAN_*.md` - Proposals for user approval
@@ -83,13 +83,13 @@ If the project is stable with no clear next steps:
 1. Run `self-review` skill
 2. Run `research` skill for new ideas
 3. Write `PLAN_*.md` for major changes
-4. Update `HEARTBEAT/STATE.md` to `status: mature`
+4. Update `.opencode-autopilot/HEARTBEAT/STATE.md` to `status: mature`
 5. Wait for user direction in `NEXT.md`
 
 ## When Blocked
 
 If you can't make progress:
-1. Document the blocker in `HEARTBEAT/STATE.md`
+1. Document the blocker in `.opencode-autopilot/HEARTBEAT/STATE.md`
 2. Write `PLAN_*.md` if you have a proposed solution
 3. Move to a different task that isn't blocked
 4. Don't force a solution that might break things

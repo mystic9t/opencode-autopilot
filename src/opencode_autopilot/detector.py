@@ -28,6 +28,7 @@ IGNORED_PATHS = {
     ".gitignore",
     ".autopilot.json",
     ".opencode",
+    ".opencode-autopilot",
     "node_modules",
     "__pycache__",
     ".venv",
@@ -59,9 +60,18 @@ def is_source_file(path: Path) -> bool:
 
 def scan_directory(project_dir: Path) -> dict:
     """Scan directory and return basic info about what's there."""
+    project_dir = Path(project_dir)
+    
     has_blueprint = (project_dir / "BLUEPRINT.md").exists()
-    has_heartbeat_dir = (project_dir / "HEARTBEAT").is_dir()
-    has_deploy_guide = (project_dir / "HEARTBEAT" / "DEPLOY_GUIDE.md").exists()
+    
+    # Check both old HEARTBEAT and new .opencode-autopilot/HEARTBEAT locations
+    old_heartbeat = project_dir / "HEARTBEAT"
+    new_heartbeat = project_dir / ".opencode-autopilot" / "HEARTBEAT"
+    has_heartbeat_dir = old_heartbeat.is_dir() or new_heartbeat.is_dir()
+    
+    # Prefer new location, fall back to old
+    active_heartbeat = new_heartbeat if new_heartbeat.is_dir() else old_heartbeat
+    has_deploy_guide = (active_heartbeat / "DEPLOY_GUIDE.md").exists()
     
     files = []
     for item in project_dir.iterdir():

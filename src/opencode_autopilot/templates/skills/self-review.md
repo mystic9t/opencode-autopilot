@@ -8,7 +8,7 @@ Use this skill when:
 - You've made many changes across multiple sessions
 - You're uncertain if your work is valuable
 - Before a final or security session
-- HEARTBEAT is getting cluttered
+- `.opencode-autopilot/HEARTBEAT` is getting cluttered
 - Project feels "done" but you keep adding things
 
 ## Process
@@ -48,7 +48,7 @@ Watch for:
 **SIMPLIFY** - Over-engineered but valuable
 **REMOVE** - Bloat, failed experiments, dead code
 
-### 5. Update HEARTBEAT/STATE.md
+### 5. Update .opencode-autopilot/HEARTBEAT/STATE.md
 
 ```markdown
 # Project State

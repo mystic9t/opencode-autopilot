@@ -71,7 +71,7 @@ def run_cmd(
 ) -> int:
     """Run autonomous improvement sessions.
     
-    Default: Improve existing project. Creates BLUEPRINT.md/HEARTBEAT/ if missing.
+    Default: Improve existing project. Creates BLUEPRINT.md/.opencode-autopilot/HEARTBEAT/ if missing.
     
     Use --gg for full trust mode: research online and build from scratch.
     """
