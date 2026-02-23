@@ -1,6 +1,6 @@
 [project]
 name = "opencode-autopilot"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 description = "Autonomous overnight engineer for OpenCode projects. Bootstrap, build, and improve while you sleep."
 readme = "README.md"
 license = { text = "MIT" }
@@ -33,7 +33,7 @@ Homepage = "https://github.com/mystic9t/opencode-autopilot"
 Repository = "https://github.com/mystic9t/opencode-autopilot"
 
 [project.scripts]
-opencode-autopilot = "opencode_autopilot.cli:app"
+opencode-autopilot = "opencode_autopilot.cli:cli_main"
 
 [build-system]
 requires = ["hatchling"]

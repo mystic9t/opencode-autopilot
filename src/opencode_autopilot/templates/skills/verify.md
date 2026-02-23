@@ -72,11 +72,10 @@ cargo test
 1. Read the error messages carefully
 2. Fix the issues before continuing
 3. Don't add new code on top of broken code
-4. If stuck, document in HEARTBEAT/STATE.md and move to a different task
+4. If stuck, document in `.opencode-autopilot/HEARTBEAT/STATE.md` and move to a different task
 
 ## Output
 
-After running checks, update HEARTBEAT/STATE.md with the result:
-
+After running checks, update `.opencode-autopilot/HEARTBEAT/STATE.md` with the result:
 - All checks pass: Note "verified" with timestamp
 - Checks fail: Note what's failing and priority to fix

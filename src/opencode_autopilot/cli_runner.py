@@ -134,12 +134,17 @@ def run_with_fallback(
     project_dir: str | Path,
     model: str | None = None,
     agent: str = "autonomous",
+    preferred_tool: str | None = None,
     excluded_tools: list[str] | None = None,
     log_callback=None,
 ) -> tuple[ToolResult, str, str]:
     """Run with automatic fallback to alternative tool on rate limit.
 
     Returns (result, tool_used, stderr).
+    
+    Args:
+        preferred_tool: If specified, try this tool first before auto-detecting.
+                       Use "opencode" or "kilo" to force a specific tool.
     """
     log = log_callback or (lambda x: None)
     excluded = excluded_tools or []
@@ -148,6 +153,11 @@ def run_with_fallback(
 
     if not available:
         return ToolResult.FAILED, "", "No CLI tools available"
+
+    # If preferred_tool is specified, put it first in the list (if available)
+    if preferred_tool and preferred_tool in available:
+        available.remove(preferred_tool)
+        available.insert(0, preferred_tool)
 
     for tool_name in available:
         log(f"Running with {tool_name}...")

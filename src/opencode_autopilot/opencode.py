@@ -45,18 +45,23 @@ def run_agent(
     project_dir: str | Path,
     model: str = "opencode/big-pickle",
     agent: str = "autonomous",
+    preferred_tool: str | None = None,
     log_callback=None,
 ) -> bool:
     """Run agent session using the given prompt.
     
     Uses fallback: if opencode is rate limited, tries kilocode.
     Returns True if the command succeeded, False otherwise.
+    
+    Args:
+        preferred_tool: If specified, try this tool first. Use "opencode" or "kilo".
     """
     result, tool_used, stderr = run_with_fallback(
         prompt=prompt,
         project_dir=project_dir,
         model=model,
         agent=agent,
+        preferred_tool=preferred_tool,
         log_callback=log_callback,
     )
     
