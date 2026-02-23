@@ -41,6 +41,8 @@ class RunOptions:
     resume: int = 1
     model: str = "opencode/big-pickle"
     agent: str = "autonomous"
+    preferred_tool: str | None = None  # "opencode" or "kilo"
+    directive: str | None = None  # User directive/task for the agent
 
 
 @dataclass
@@ -86,6 +88,7 @@ def run_session(
     project_dir: Path,
     model: str,
     agent: str,
+    preferred_tool: str | None = None,
     log_callback: Callable[[str], None] | None = None,
 ) -> RunResult:
     """Run a single session and return the result with timing."""
@@ -100,6 +103,7 @@ def run_session(
         project_dir=project_dir,
         model=model,
         agent=agent,
+        preferred_tool=preferred_tool,
         log_callback=log_callback,
     )
     
@@ -122,6 +126,7 @@ def run_with_timeout_check(
     project_dir: Path,
     model: str,
     agent: str,
+    preferred_tool: str | None = None,
     max_runtime_seconds: int = 600,  # 10 minutes default
     log_callback: Callable[[str], None] | None = None,
 ) -> tuple[RunResult, bool]:
@@ -148,6 +153,7 @@ def run_with_timeout_check(
             project_dir=project_dir,
             model=model,
             agent=agent,
+            preferred_tool=preferred_tool,
             log_callback=log_callback,
         )
         
@@ -226,7 +232,7 @@ def run_gg_mode(
     log(f"Model    : {options.model}")
     log("=" * 56)
     
-    scaffold.ensure_scaffolded(project_dir, silent=True)
+    scaffold.ensure_scaffolded(project_dir)
     
     # Session 0: Research
     log("=" * 56)
@@ -296,14 +302,22 @@ def run_gg_mode(
             retry_count = 0
             
             while not blueprint_done and retry_count < max_retries:
-                run_agent(
+                result, timeout_hit = run_with_timeout_check(
                     prompt=prompt,
                     project_dir=project_dir,
                     model=options.model,
                     agent=options.agent,
+                    preferred_tool=options.preferred_tool,
+                    max_runtime_seconds=600,  # 10 minutes
+                    log_callback=log_callback
                 )
                 
-                if blueprint_path.exists():
+                if timeout_hit:
+                    # Session appears stuck, mark as complete to continue
+                    blueprint_done = True
+                    log("WARNING: Session timed out after 10 minutes - appears stuck")
+                    log("Session will be marked as complete and next session will continue")
+                elif blueprint_path.exists():
                     blueprint_done = True
                     log("BLUEPRINT.md confirmed.")
                 else:
@@ -322,23 +336,35 @@ def run_gg_mode(
             # Security/final session
             prompt = prompts.final_session_prompt(run, total_runs)
             
-            run_agent(
+            result, timeout_hit = run_with_timeout_check(
                 prompt=prompt,
                 project_dir=project_dir,
                 model=options.model,
                 agent=options.agent,
+                max_runtime_seconds=600,  # 10 minutes
+                log_callback=log_callback
             )
+            
+            if timeout_hit:
+                log("WARNING: Final session timed out after 10 minutes - appears stuck")
+                log("Final session will be marked as complete")
             
         else:
             # Regular build session
             prompt = prompts.session_prompt(run, total_runs)
             
-            run_agent(
+            result, timeout_hit = run_with_timeout_check(
                 prompt=prompt,
                 project_dir=project_dir,
                 model=options.model,
                 agent=options.agent,
+                max_runtime_seconds=600,  # 10 minutes
+                log_callback=log_callback
             )
+            
+            if timeout_hit:
+                log(f"WARNING: Session {run} timed out after 10 minutes - appears stuck")
+                log(f"Session {run} will be marked as complete")
         
         # Calculate run duration and end time
         run_end_time = ist_now_dt()
@@ -402,7 +428,7 @@ def run(
     log(f"Model    : {options.model}")
     log("=" * 56)
     
-    scaffold.ensure_scaffolded(project_dir, silent=True)
+    scaffold.ensure_scaffolded(project_dir)
     
     run_num = 1
     max_retries = 3
@@ -427,14 +453,22 @@ def run(
             retry_count = 0
             
             while not blueprint_done and retry_count < max_retries:
-                run_agent(
+                result, timeout_hit = run_with_timeout_check(
                     prompt=prompt,
                     project_dir=project_dir,
                     model=options.model,
                     agent=options.agent,
+                    preferred_tool=options.preferred_tool,
+                    max_runtime_seconds=600,  # 10 minutes
+                    log_callback=log_callback
                 )
                 
-                if blueprint_path.exists():
+                if timeout_hit:
+                    # Session appears stuck, mark as complete to continue
+                    blueprint_done = True
+                    log("WARNING: Session timed out after 10 minutes - appears stuck")
+                    log("Session will be marked as complete and next session will continue")
+                elif blueprint_path.exists():
                     blueprint_done = True
                     log("BLUEPRINT.md confirmed.")
                 else:
@@ -453,23 +487,35 @@ def run(
             # Security/final session
             prompt = prompts.final_session_prompt(run_num, total_runs)
             
-            run_agent(
+            result, timeout_hit = run_with_timeout_check(
                 prompt=prompt,
                 project_dir=project_dir,
                 model=options.model,
                 agent=options.agent,
+                max_runtime_seconds=600,  # 10 minutes
+                log_callback=log_callback
             )
+            
+            if timeout_hit:
+                log("WARNING: Final session timed out after 10 minutes - appears stuck")
+                log("Final session will be marked as complete")
             
         else:
             # Build session
             prompt = prompts.session_prompt(run_num, total_runs)
             
-            run_agent(
+            result, timeout_hit = run_with_timeout_check(
                 prompt=prompt,
                 project_dir=project_dir,
                 model=options.model,
                 agent=options.agent,
+                max_runtime_seconds=600,  # 10 minutes
+                log_callback=log_callback
             )
+            
+            if timeout_hit:
+                log(f"WARNING: Session {run_num} timed out after 10 minutes - appears stuck")
+                log(f"Session {run_num} will be marked as complete")
         
         # Calculate run duration and end time
         run_end_time = ist_now_dt()

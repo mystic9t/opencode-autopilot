@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 
 GLOBAL_CONFIG = Path.home() / ".autopilot.json"
@@ -14,6 +15,7 @@ class AutopilotConfig:
     agent: str | None = None
     sessions: int | None = None
     interval: int | None = None
+    tool: str | None = None  # "opencode", "kilo", or None for auto
 
 
 def project_config_path(project_dir: str | Path) -> Path:
@@ -44,6 +46,7 @@ def load_config(project_dir: str | Path) -> AutopilotConfig:
         agent=merged.get("agent"),
         sessions=merged.get("sessions"),
         interval=merged.get("interval"),
+        tool=merged.get("tool"),
     )
 
 
@@ -70,12 +73,14 @@ def save_config(
         existing["sessions"] = updates.sessions
     if updates.interval is not None:
         existing["interval"] = updates.interval
+    if updates.tool is not None:
+        existing["tool"] = updates.tool
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(existing, indent=2))
 
 
-def show_config(project_dir: str | Path) -> dict[str, any]:
+def show_config(project_dir: str | Path) -> dict[str, Any]:
     project_dir = Path(project_dir)
 
     global_cfg: dict = {}
